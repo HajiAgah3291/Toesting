@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Retro Ping Pong</title>
+<style>
+  body { margin: 0; background: #000; color: #fff; }
+  canvas { display: block; margin: auto; background: #000; touch-action: none; }
+  #pauseOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    font-size: 48px;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="pauseOverlay">Paused - tap to resume</div>
+<script src="ping_pong.js"></script>
+</body>
+</html>
