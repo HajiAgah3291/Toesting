@@ -38,6 +38,7 @@ window.addEventListener('keydown', e => {
     togglePause();
   }
 });
+
 window.addEventListener('keyup', e => {
   keys[e.key] = false;
 });
@@ -65,8 +66,8 @@ function handleTouch(e) {
   e.preventDefault();
 }
 
-canvas.addEventListener('touchstart', handleTouch, {passive: false});
-canvas.addEventListener('touchmove', handleTouch, {passive: false});
+canvas.addEventListener('touchstart', handleTouch, { passive: false });
+canvas.addEventListener('touchmove', handleTouch, { passive: false });
 
 function resetBall() {
   ballX = WIDTH / 2 - BALL_SIZE / 2;
@@ -75,14 +76,13 @@ function resetBall() {
 }
 
 function update() {
-  // Left paddle movement (W/S)
   if (keys['w'] && leftPaddleY > 0) {
     leftPaddleY -= PADDLE_SPEED;
   }
   if (keys['s'] && leftPaddleY + PADDLE_HEIGHT < HEIGHT) {
     leftPaddleY += PADDLE_SPEED;
   }
-  // Right paddle movement (ArrowUp/ArrowDown)
+
   if (keys['ArrowUp'] && rightPaddleY > 0) {
     rightPaddleY -= PADDLE_SPEED;
   }
@@ -90,30 +90,27 @@ function update() {
     rightPaddleY += PADDLE_SPEED;
   }
 
-  // Move the ball
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
-  // Wall collision
   if (ballY <= 0 || ballY + BALL_SIZE >= HEIGHT) {
     ballSpeedY *= -1;
   }
 
-  // Paddle collision
   if (ballX <= 30 + PADDLE_WIDTH &&
-      ballY + BALL_SIZE >= leftPaddleY &&
-      ballY <= leftPaddleY + PADDLE_HEIGHT &&
-      ballSpeedX < 0) {
-    ballSpeedX *= -1;
-  }
-  if (ballX + BALL_SIZE >= WIDTH - 30 - PADDLE_WIDTH &&
-      ballY + BALL_SIZE >= rightPaddleY &&
-      ballY <= rightPaddleY + PADDLE_HEIGHT &&
-      ballSpeedX > 0) {
+    ballY + BALL_SIZE >= leftPaddleY &&
+    ballY <= leftPaddleY + PADDLE_HEIGHT &&
+    ballSpeedX < 0) {
     ballSpeedX *= -1;
   }
 
-  // Scoring
+  if (ballX + BALL_SIZE >= WIDTH - 30 - PADDLE_WIDTH &&
+    ballY + BALL_SIZE >= rightPaddleY &&
+    ballY <= rightPaddleY + PADDLE_HEIGHT &&
+    ballSpeedX > 0) {
+    ballSpeedX *= -1;
+  }
+
   if (ballX <= 0) {
     rightScore += 1;
     resetBall();
