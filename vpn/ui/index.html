@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VPN Control Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 40px 48px;
+      width: 420px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .shield {
+      font-size: 2.4rem;
+      line-height: 1;
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #7070a0;
+      margin-top: 2px;
+    }
+
+    /* Status badge */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding: 12px 16px;
+      background: #12122a;
+      border-radius: 10px;
+      border: 1px solid #22225a;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    .dot.disconnected { background: #555; }
+    .dot.connecting   { background: #f5a623; animation: pulse 1s infinite; }
+    .dot.connected    { background: #4ade80; box-shadow: 0 0 8px #4ade80aa; }
+    .dot.error        { background: #f87171; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .status-text { font-size: 0.9rem; font-weight: 500; }
+    .status-vip  { font-size: 0.75rem; color: #7070a0; margin-left: auto; font-family: monospace; }
+
+    /* Form fields */
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #9090c0;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: #12122a;
+      border: 1px solid #2a2a5a;
+      border-radius: 8px;
+      color: #e0e0f0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #5a5af0; }
+    input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .row { display: flex; gap: 12px; }
+    .row .field { flex: 1; }
+
+    /* Checkbox */
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: #5a5af0;
+      cursor: pointer;
+    }
+
+    .check-row span { font-size: 0.88rem; color: #b0b0d0; }
+    .check-row small { font-size: 0.75rem; color: #606090; display: block; }
+
+    /* Connect button */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #5a5af0, #7b5af5);
+      color: #fff;
+    }
+    .btn-connect:hover:not(:disabled) {
+      background: linear-gradient(135deg, #6b6bff, #8c6bff);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px #5a5af055;
+    }
+
+    .btn-disconnect {
+      background: #2a1a1a;
+      border: 1px solid #8b0000;
+      color: #f87171;
+    }
+    .btn-disconnect:hover:not(:disabled) {
+      background: #3a1a1a;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Log */
+    .log-label {
+      font-size: 0.72rem;
+      color: #5a5a80;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 24px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .log-label button {
+      background: none;
+      border: none;
+      color: #5a5a80;
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 0;
+    }
+    .log-label button:hover { color: #9090c0; }
+
+    #log {
+      background: #0a0a18;
+      border: 1px solid #1a1a3a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: "Fira Code", "Consolas", monospace;
+      font-size: 0.73rem;
+      color: #8080b0;
+      height: 130px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    #log .line-info  { color: #8080b0; }
+    #log .line-ok    { color: #4ade80; }
+    #log .line-warn  { color: #f5a623; }
+    #log .line-error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <span class="shield">&#x1F6E1;</span>
+      <div>
+        <div class="title">VPN Control Panel</div>
+        <div class="subtitle">Encrypted tunnel over UDP</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <span class="dot disconnected" id="dot"></span>
+      <span class="status-text" id="statusText">Disconnected</span>
+      <span class="status-vip" id="statusVip"></span>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Server address</label>
+        <input type="text" id="server" placeholder="192.168.1.1" />
+      </div>
+      <div class="field" style="max-width:100px">
+        <label>Port</label>
+        <input type="number" id="port" value="51820" min="1" max="65535" />
+      </div>
+    </div>
+
+    <label class="check-row" style="margin-bottom:24px">
+      <input type="checkbox" id="fullTunnel" />
+      <div>
+        <span>Full tunnel</span>
+        <small>Route all internet traffic through VPN</small>
+      </div>
+    </label>
+
+    <button class="btn btn-connect" id="connectBtn" onclick="connect()">Connect</button>
+    <button class="btn btn-disconnect" id="disconnectBtn" onclick="disconnect()" style="display:none;margin-top:10px">Disconnect</button>
+
+    <div class="log-label">
+      <span>Log</span>
+      <button onclick="document.getElementById('log').innerHTML=''">clear</button>
+    </div>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    let pollTimer = null;
+
+    function appendLog(msg, type = 'info') {
+      const log = document.getElementById('log');
+      const line = document.createElement('div');
+      line.className = 'line-' + type;
+      const ts = new Date().toTimeString().slice(0, 8);
+      line.textContent = ts + '  ' + msg;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function setConnected(vip) {
+      document.getElementById('dot').className = 'dot connected';
+      document.getElementById('statusText').textContent = 'Connected';
+      document.getElementById('statusVip').textContent = vip || '';
+      document.getElementById('connectBtn').style.display = 'none';
+      document.getElementById('disconnectBtn').style.display = 'block';
+      document.getElementById('server').disabled = true;
+      document.getElementById('port').disabled = true;
+      document.getElementById('fullTunnel').disabled = true;
+    }
+
+    function setDisconnected(msg) {
+      document.getElementById('dot').className = 'dot disconnected';
+      document.getElementById('statusText').textContent = 'Disconnected';
+      document.getElementById('statusVip').textContent = '';
+      document.getElementById('connectBtn').style.display = 'block';
+      document.getElementById('disconnectBtn').style.display = 'none';
+      document.getElementById('connectBtn').disabled = false;
+      document.getElementById('server').disabled = false;
+      document.getElementById('port').disabled = false;
+      document.getElementById('fullTunnel').disabled = false;
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    function setConnecting() {
+      document.getElementById('dot').className = 'dot connecting';
+      document.getElementById('statusText').textContent = 'Connecting…';
+      document.getElementById('connectBtn').disabled = true;
+    }
+
+    async function connect() {
+      const server = document.getElementById('server').value.trim();
+      if (!server) { appendLog('Enter a server address first.', 'warn'); return; }
+      const port = parseInt(document.getElementById('port').value) || 51820;
+      const fullTunnel = document.getElementById('fullTunnel').checked;
+
+      setConnecting();
+      appendLog('Connecting to ' + server + ':' + port + '…');
+
+      try {
+        const res = await fetch('/api/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ server, port, full_tunnel: fullTunnel }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          appendLog('Tunnel established — VIP ' + data.vip, 'ok');
+          setConnected(data.vip);
+          pollTimer = setInterval(pollStatus, 3000);
+        } else {
+          appendLog('Connection failed: ' + data.error, 'error');
+          setDisconnected();
+          document.getElementById('dot').className = 'dot error';
+          document.getElementById('statusText').textContent = 'Error';
+        }
+      } catch (e) {
+        appendLog('Request failed: ' + e.message, 'error');
+        setDisconnected();
+      }
+    }
+
+    async function disconnect() {
+      appendLog('Disconnecting…', 'warn');
+      try {
+        await fetch('/api/disconnect', { method: 'POST' });
+      } catch (_) {}
+      appendLog('Disconnected.', 'info');
+      setDisconnected();
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.state === 'connected') {
+          setConnected(data.vip);
+        } else {
+          appendLog('Tunnel went down.', 'warn');
+          setDisconnected();
+        }
+      } catch (_) {
+        setDisconnected();
+      }
+    }
+
+    // On load — check if already connected
+    (async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.state === 'connected') {
+          appendLog('Already connected — VIP ' + data.vip, 'ok');
+          setConnected(data.vip);
+          pollTimer = setInterval(pollStatus, 3000);
+        }
+      } catch (_) {}
+    })();
+  </script>
+</body>
+</html>
